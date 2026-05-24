@@ -72,6 +72,7 @@
     symbolTarget: '',
     symbolGridTimer: null,
     symbolRefreshRate: 1500,
+    symbolProcessing: false,
     maze: {
       ctx: null,
       player: { x: 50, y: 350, size: 20 },
@@ -517,6 +518,7 @@
     state.symbolTarget = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
     DOM.symbolTargetChar.textContent = state.symbolTarget;
     renderSymbolGrid();
+    state.symbolProcessing = false;
     clearTimeout(state.symbolGridTimer);
     state.symbolGridTimer = setTimeout(() => {
       playSound('type');
@@ -542,7 +544,9 @@
   }
   function handleSymbolClick(sym, cell) {
     if (state.activeLevel !== 1) return;
+    if (state.symbolProcessing) return;
     if (sym === state.symbolTarget) {
+      state.symbolProcessing = true;
       clearTimeout(state.symbolGridTimer);
       cell.classList.add('correct');
       playSound('success');
