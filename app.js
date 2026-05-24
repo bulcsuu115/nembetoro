@@ -72,7 +72,7 @@
     symbolTarget: '',
     symbolGridTimer: null,
     symbolRefreshRate: 1500,
-    symbolProcessing: false,
+    symbolLocked: false,
     maze: {
       ctx: null,
       player: { x: 50, y: 350, size: 20 },
@@ -515,10 +515,10 @@
   }
   function nextSymbolRound() {
     if (state.activeLevel !== 1) return;
+    state.symbolLocked = false;
     state.symbolTarget = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
     DOM.symbolTargetChar.textContent = state.symbolTarget;
     renderSymbolGrid();
-    state.symbolProcessing = false;
     clearTimeout(state.symbolGridTimer);
     state.symbolGridTimer = setTimeout(() => {
       playSound('type');
@@ -544,9 +544,9 @@
   }
   function handleSymbolClick(sym, cell) {
     if (state.activeLevel !== 1) return;
-    if (state.symbolProcessing) return;
+    if (state.symbolLocked) return;
     if (sym === state.symbolTarget) {
-      state.symbolProcessing = true;
+      state.symbolLocked = true;
       clearTimeout(state.symbolGridTimer);
       cell.classList.add('correct');
       playSound('success');
@@ -590,34 +590,48 @@
       height: 30
     };
     state.maze.enemies = [];
+    // Vertical patrollers – 6 columns
     for (let i = 0; i < 6; i++) {
       state.maze.enemies.push({
-        x: 100 + i * 70,
+        x: 90 + i * 70,
         y: Math.random() * 350,
         width: 18,
         height: 18,
         speedX: 0,
-        speedY: (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2.5)
+        speedY: (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2)
       });
     }
+    // Horizontal patrollers – 4 rows
     for (let i = 0; i < 4; i++) {
       state.maze.enemies.push({
         x: Math.random() * 300 + 100,
         y: 40 + i * 90,
         width: 18,
         height: 18,
-        speedX: (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2.5),
+        speedX: (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2),
         speedY: 0
       });
     }
+    // Bottom edge patrollers – block the bottom shortcut
     for (let i = 0; i < 2; i++) {
       state.maze.enemies.push({
-        x: 200 + i * 150,
+        x: 120 + i * 200,
+        y: 360 + Math.random() * 20,
+        width: 18,
+        height: 18,
+        speedX: (Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 1.5),
+        speedY: 0
+      });
+    }
+    // Diagonal bouncers – unpredictable movement
+    for (let i = 0; i < 2; i++) {
+      state.maze.enemies.push({
+        x: 180 + i * 180,
         y: Math.random() * 300 + 50,
         width: 18,
         height: 18,
-        speedX: (Math.random() > 0.5 ? 1 : -1) * (1.5 + Math.random()),
-        speedY: (Math.random() > 0.5 ? 1 : -1) * (1.5 + Math.random())
+        speedX: (Math.random() > 0.5 ? 1 : -1) * (1.8 + Math.random() * 1.2),
+        speedY: (Math.random() > 0.5 ? 1 : -1) * (1.8 + Math.random() * 1.2)
       });
     }
   }
