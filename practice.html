@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <title>Gépelési Gyakorló - Nem Bankrabló</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #050510;
+      color: #00ff41;
+      font-family: 'Share Tech Mono', monospace;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+      margin-bottom: 20px;
+    }
+    #game-container {
+      position: relative;
+      width: 800px;
+      height: 600px;
+      border: 2px solid #00ff41;
+      box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+      background: rgba(0, 20, 0, 0.8);
+      overflow: hidden;
+      border-radius: 8px;
+    }
+    #hud {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 10;
+      font-size: 20px;
+      font-weight: bold;
+      text-shadow: 0 0 5px #00ff41;
+    }
+    #arena {
+      width: 100%;
+      height: 500px;
+      position: relative;
+      overflow: hidden;
+    }
+    #input-area {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 50, 0, 0.5);
+      border-top: 1px solid #00ff41;
+    }
+    #hack-input {
+      width: 80%;
+      padding: 15px;
+      font-size: 24px;
+      font-family: 'Share Tech Mono', monospace;
+      background: #000;
+      color: #00ff41;
+      border: 1px solid #00ff41;
+      border-radius: 4px;
+      text-align: center;
+      text-transform: uppercase;
+      outline: none;
+      box-shadow: 0 0 10px rgba(0, 255, 65, 0.2) inset;
+    }
+    #hack-input:focus {
+      box-shadow: 0 0 20px rgba(0, 255, 65, 0.5) inset;
+    }
+    .falling-entity {
+      position: absolute;
+      font-size: 22px;
+      font-weight: bold;
+      color: #00ff41;
+      white-space: nowrap;
+      text-shadow: 0 0 5px #00ff41;
+      padding: 5px 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(0, 255, 65, 0.3);
+      border-radius: 4px;
+    }
+    .falling-entity.destroyed {
+      color: #facc15;
+      text-shadow: 0 0 10px #facc15;
+      border-color: #facc15;
+      animation: blast 0.3s forwards;
+    }
+    .falling-entity.missed {
+      color: #ff2244;
+      text-shadow: 0 0 10px #ff2244;
+      border-color: #ff2244;
+      animation: shake 0.3s forwards;
+    }
+    @keyframes blast {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      text-align: center;
+    }
+    .btn {
+      margin-top: 30px;
+      padding: 15px 30px;
+      font-size: 20px;
+      font-family: 'Orbitron', sans-serif;
+      color: #000;
+      background: #00ff41;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      box-shadow: 0 0 20px #00ff41;
+      transform: scale(1.05);
+    }
+    .btn.secondary {
+      background: #ff2244;
+      color: #fff;
+    }
+    .btn.secondary:hover {
+      box-shadow: 0 0 20px #ff2244;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>HACKER TERMINÁL - GÉPELÉSI GYAKORLÓ</h1>
+
+  <div id="game-container">
+    <div id="hud">
+      <div>SCORE: <span id="score-val">0</span></div>
+      <div id="lives-val">🟢🟢🟢</div>
+    </div>
+    
+    <div id="arena"></div>
+    
+    <div id="input-area">
+      <input type="text" id="hack-input" autocomplete="off" spellcheck="false" autofocus>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="overlay">
+      <h2 style="font-family: 'Orbitron', sans-serif; font-size: 32px; margin-bottom: 10px;">VÉGTELEN GÉPELÉSI MÓD</h2>
+      <p style="font-size: 18px; max-width: 600px; line-height: 1.5; color: rgba(255,255,255,0.8);">
+        A szavak egyre gyorsabban fognak esni. Gépeld be őket pontosan és nyomj ENTER-t! Ha egy szó eléri az alsó vonalat, veszítesz egy életet.
+      </p>
+      <button class="btn" id="btn-start">RENDSZER INDÍTÁSA</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="overlay" style="display: none;">
+      <h2 style="font-family: 'Orbitron', sans-serif; font-size: 40px; color: #ff2244; margin-bottom: 10px;">RIASZTÁS AKTIVÁLVA</h2>
+      <p style="font-size: 24px; color: #fff;">VÉGSŐ PONTOZÁS: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span></p>
+      <button class="btn secondary" id="btn-restart">ÚJRA PRÓBÁLKOZÁS</button>
+    </div>
+  </div>
+
+  <script>
+    const WORD_POOL = [
+      'HACK', 'BYPASS', 'OVERRIDE', 'ACCESS', 'DECRYPT',
+      'FIREWALL', 'PROXY', 'KERNEL', 'EXPLOIT', 'BREACH',
+      'PAYLOAD', 'INJECT', 'ROOTKIT', 'CIPHER', 'TOKEN',
+      'VÉDELEM', 'RIASZTÓ', 'KULCS', 'JELSZÓ', 'BELÉPÉS',
+      'KAMERA', 'SZERVER', 'HÁLÓZAT', 'KÓDOLÁS', 'BETÖRÉS',
+      'VAULT', 'SYSTEM', 'REBOOT', 'DAEMON', 'SCRIPT',
+      'BINARY', 'MODULE', 'SOCKET', 'UPLOAD', 'STREAM',
+      'KIBERBIZTONSÁG', 'TITKOSÍTÁS', 'HACKERTÁMADÁS', 'VÉDŐPAJZS',
+      'ADATHALÁSZAT', 'BEHATOLÁSTESZT', 'ZSAROLÓVÍRUS', 'FELHŐSZOLGÁLTATÁS',
+      'SKIBIDI', 'TUNGTUNGSAHUR', 'SIXSEVEN', 'MEGSZENTSÉGTELENÍTHETETLENSÉGESKEDÉSEITEKÉRT'
+    ];
+
+    let state = {
+      score: 0,
+      lives: 3,
+      entities: [],
+      spawnTimer: 0,
+      spawnInterval: 2000,
+      fallSpeed: 0.8,
+      lastFrame: 0,
+      animFrame: null,
+      active: false
+    };
+
+    const DOM = {
+      arena: document.getElementById('arena'),
+      input: document.getElementById('hack-input'),
+      score: document.getElementById('score-val'),
+      lives: document.getElementById('lives-val'),
+      startScreen: document.getElementById('start-screen'),
+      gameOverScreen: document.getElementById('game-over-screen'),
+      finalScore: document.getElementById('final-score')
+    };
+
+    function spawnEntity() {
+      const word = WORD_POOL[Math.floor(Math.random() * WORD_POOL.length)];
+      const el = document.createElement('div');
+      el.className = 'falling-entity';
+      el.textContent = word;
+      DOM.arena.appendChild(el);
+      
+      const w = el.getBoundingClientRect().width;
+      const maxLeft = DOM.arena.clientWidth - w - 20;
+      const x = Math.max(10, Math.random() * maxLeft);
+      
+      const entity = {
+        element: el,
+        value: word,
+        x: x,
+        y: -40,
+        speed: state.fallSpeed + (Math.random() * 0.5)
+      };
+      
+      el.style.left = x + 'px';
+      el.style.top = entity.y + 'px';
+      state.entities.push(entity);
+    }
+
+    function removeEntity(entity, reason) {
+      const idx = state.entities.indexOf(entity);
+      if (idx > -1) {
+        state.entities.splice(idx, 1);
+      }
+      entity.element.classList.add(reason);
+      setTimeout(() => {
+        if (entity.element.parentNode) {
+          entity.element.parentNode.removeChild(entity.element);
+        }
+      }, 300);
+    }
+
+    function updateHUD() {
+      DOM.score.textContent = state.score;
+      DOM.lives.textContent = '🟢'.repeat(state.lives) + '💀'.repeat(3 - state.lives);
+    }
+
+    function gameOver() {
+      state.active = false;
+      cancelAnimationFrame(state.animFrame);
+      DOM.gameOverScreen.style.display = 'flex';
+      DOM.finalScore.textContent = state.score;
+      DOM.input.blur();
+    }
+
+    function gameLoop(timestamp) {
+      if (!state.active) return;
+      if (!state.lastFrame) state.lastFrame = timestamp;
+      const delta = timestamp - state.lastFrame;
+      state.lastFrame = timestamp;
+      
+      state.spawnTimer += delta;
+      if (state.spawnTimer >= state.spawnInterval) {
+        state.spawnTimer = 0;
+        spawnEntity();
+        
+        // Difficulty scaling
+        if (state.spawnInterval > 800) state.spawnInterval -= 30;
+        state.fallSpeed += 0.02;
+      }
+      
+      const arenaH = DOM.arena.clientHeight;
+      for (let i = state.entities.length - 1; i >= 0; i--) {
+        const e = state.entities[i];
+        e.y += e.speed * (delta / 16);
+        e.element.style.top = e.y + 'px';
+        
+        if (e.y > arenaH - 30) {
+          removeEntity(e, 'missed');
+          state.lives--;
+          updateHUD();
+          if (state.lives <= 0) {
+            gameOver();
+            return;
+          }
+        }
+      }
+      
+      state.animFrame = requestAnimationFrame(gameLoop);
+    }
+
+    DOM.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const val = DOM.input.value.trim().toUpperCase();
+        DOM.input.value = '';
+        
+        let match = null;
+        let maxY = -1000;
+        for (let ent of state.entities) {
+          if (ent.value === val && ent.y > maxY) {
+            match = ent;
+            maxY = ent.y;
+          }
+        }
+        
+        if (match) {
+          removeEntity(match, 'destroyed');
+          state.score += 10;
+          updateHUD();
+        } else {
+          // Optional: penalty for wrong word?
+          // For now, do nothing.
+        }
+      }
+    });
+
+    function startGame() {
+      DOM.arena.innerHTML = '';
+      state = {
+        score: 0,
+        lives: 3,
+        entities: [],
+        spawnTimer: 0,
+        spawnInterval: 2000,
+        fallSpeed: 0.8,
+        lastFrame: 0,
+        animFrame: null,
+        active: true
+      };
+      updateHUD();
+      DOM.startScreen.style.display = 'none';
+      DOM.gameOverScreen.style.display = 'none';
+      DOM.input.value = '';
+      DOM.input.focus();
+      state.lastFrame = performance.now();
+      state.animFrame = requestAnimationFrame(gameLoop);
+    }
+
+    document.getElementById('btn-start').addEventListener('click', startGame);
+    document.getElementById('btn-restart').addEventListener('click', startGame);
+
+    // Keep focus on input area when clicking around arena
+    document.getElementById('game-container').addEventListener('click', () => {
+      if (state.active) DOM.input.focus();
+    });
+  </script>
+</body>
+</html>

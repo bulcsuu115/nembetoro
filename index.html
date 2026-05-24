@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Nem Bankrabló — Törj be a bank kamerarendszerébe a legújabb hacker eszközökkel!">
+  <title>NEM BANKRABLÁS</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <canvas id="matrix-rain"></canvas>
+  <div id="game-container">
+    <header id="header">
+      <div class="header-left">
+        <div class="logo">NEM <span class="highlight">BANKRABLÁS</span></div>
+        <div class="target-info">
+          <span class="pulse-dot"></span>
+          <span>TARGET: ERSTE BANK — MÁTÉSZALKA</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <div class="level-indicator" id="level-indicator">LEVEL 0 — STANDBY</div>
+        <div class="score-display" id="score-display">SCORE: 0</div>
+      </div>
+      <div class="header-right">
+        <div class="lives-container" id="lives-container">
+          <span class="life-icon alive">🟢</span>
+          <span class="life-icon alive">🟢</span>
+          <span class="life-icon alive">🟢</span>
+        </div>
+        <span class="lives-label">ÉLETEK</span>
+        <button class="sound-toggle" id="sound-toggle" title="Toggle Sound">🔊</button>
+      </div>
+    </header>
+    <main id="main-content">
+      <div class="panel" id="console-panel">
+        <div class="panel-header">
+          <span class="icon">👤</span>
+          <span>Hacker Profile</span>
+        </div>
+        <div id="hacker-profile">
+          <div class="avatar-container">
+            <img src="maszkos-rablo_0.jpg.jpg" alt="Nem Bankrabló Profile" class="avatar-image">
+            <div class="avatar-scanline"></div>
+          </div>
+          <div class="profile-details">
+            <div class="hacker-alias">nem bankrabló</div>
+            <div class="hacker-status"><span class="status-indicator"></span>ONLINE</div>
+            <div class="hacker-role">OPERATOR (AUDITOR)</div>
+          </div>
+        </div>
+        <div class="panel-header">
+          <span class="icon">⟩_</span>
+          <span>System Console</span>
+        </div>
+        <div id="console-log"></div>
+      </div>
+      <div class="panel" id="arena-panel">
+        <div class="panel-header">
+          <span class="icon">◈</span>
+          <span id="arena-title">Hack Terminal</span>
+        </div>
+        <div id="arena">
+          <div id="wire-puzzle">
+            <div id="wire-timer">SZABOTÁZS RIASZTÁS: <span id="wire-timer-sec">30.00</span>s</div>
+            <div class="wire-columns">
+              <div class="wire-column" id="wire-left"></div>
+              <svg id="wire-svg"></svg>
+              <div class="wire-column" id="wire-right"></div>
+            </div>
+          </div>
+          <div id="symbol-puzzle" style="display: none;">
+            <div id="symbol-target-display">CÉLPONT: <span id="symbol-target-char">Ω</span></div>
+            <div id="symbol-grid"></div>
+          </div>
+          <div id="maze-puzzle" style="display: none;">
+            <canvas id="maze-canvas"></canvas>
+          </div>
+        </div>
+        <div id="input-area">
+          <span class="prompt-symbol">▶</span>
+          <input type="text" id="hack-input" placeholder="Írd be a kódot..." autocomplete="off" spellcheck="false">
+        </div>
+        <div class="progress-info">
+          <span id="progress-label">Progress: 0 / 10</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" id="cameras-panel">
+        <div class="panel-header">
+          <span class="icon">📹</span>
+          <span>CCTV Security Feeds</span>
+        </div>
+        <div class="cameras-grid">
+          <div class="camera-card" id="cam-1">
+            <img class="cam-bg" src="erste-bank-madilancos-studio-04.jpg" alt="CAM 1">
+            <span class="cam-label">CAM 01 — Entrance</span>
+            <span class="cam-status active" id="cam-status-1">ACTIVE</span>
+            <div class="cam-content">LIVE FEED ▣</div>
+            <div class="static-overlay"></div>
+          </div>
+          <div class="camera-card" id="cam-2">
+            <img class="cam-bg" src="hr-4.jpg" alt="CAM 2">
+            <span class="cam-label">CAM 02 — Main Hall</span>
+            <span class="cam-status active" id="cam-status-2">ACTIVE</span>
+            <div class="cam-content">LIVE FEED ▣</div>
+            <div class="static-overlay"></div>
+          </div>
+          <div class="camera-card" id="cam-3">
+            <img class="cam-bg" src="51150519_7fcd10d05033cabf996a412f023580a6_wm.jpg" alt="CAM 3">
+            <span class="cam-label">CAM 03 — Vault Hall</span>
+            <span class="cam-status active" id="cam-status-3">ACTIVE</span>
+            <div class="cam-content">LIVE FEED ▣</div>
+            <div class="static-overlay"></div>
+          </div>
+          <div class="camera-card" id="cam-4">
+            <img class="cam-bg" src="vault.jpg" alt="CAM 4">
+            <span class="cam-label">CAM 04 — Inner Vault</span>
+            <span class="cam-status active" id="cam-status-4">ACTIVE</span>
+            <div class="cam-content">LIVE FEED ▣</div>
+            <div class="static-overlay"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div class="overlay active" id="overlay-menu">
+    <div class="overlay-content">
+      <div class="overlay-title green">NEM BANKRABLÁS</div>
+      <div class="overlay-subtitle">
+        Üdvözöljük <strong style="color:#00ff41;">nem bankrabló</strong><br>
+        A célpont: <strong style="color:#00d4ff;">Erste Bank, Mátészalka</strong> kamerarendszere.<br>
+        Törd fel a védelmi szinteket, mielőtt az alarm bejelez!<br><br>
+      </div>
+      <button class="overlay-btn" id="btn-start">HACK INDÍTÁSA</button>
+    </div>
+  </div>
+  <div class="overlay" id="overlay-level">
+    <div class="overlay-content">
+      <div class="level-transition-text" id="level-transition-text"></div>
+    </div>
+  </div>
+  <div class="overlay" id="overlay-win">
+    <div class="overlay-content">
+      <div class="overlay-title cyan">GRATULÁLUNK! RENDSZER FELTÖRVE</div>
+      <div class="overlay-subtitle">
+        Minden kamera offline. Az <strong style="color:#00d4ff;">Erste Bank, Mátészalka</strong> biztonsági rendszere
+        kikapcsolva.<br>
+        A „nem bankrabló" sikeresen tesztelte a rendszert.<br><br>
+        <span id="final-score" style="font-family: 'Orbitron', sans-serif; font-size: 24px; color: #facc15;"></span>
+        <p
+          style="color: #00ff41; margin-top: 40px; font-size: 22px; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,65,0.8);">
+          ✅ Sikeresen megfelelt a teszten, kérem keressen fel!
+        </p>
+      </div>
+      <a href="https://www.linkedin.com/in/nem-bankrablo-5a56403ab/" target="_blank" class="overlay-btn"
+        style="margin-top: 20px; background-color: #0a66c2; border-color: #0a66c2; color: #fff; text-decoration: none; display: inline-block; padding: 20px 40px; font-size: 26px; font-weight: bold; text-shadow: none; box-shadow: 0 0 25px rgba(10, 102, 194, 0.8);">
+        ▶ LINKEDIN PROFILOM ◀
+      </a>
+    </div>
+  </div>
+  <div class="overlay" id="overlay-gameover">
+    <div class="overlay-content">
+      <div class="overlay-title red">RIASZTÁS AKTIVÁLVA</div>
+      <div class="overlay-subtitle">
+        A bank biztonsági rendszere detektálta a behatolást!<br>
+        „nem bankrabló"-t azonosították...<br><br>
+        <span id="gameover-score" style="font-family: 'Orbitron', sans-serif; font-size: 20px; color: #ff8c00;"></span>
+      </div>
+      <button class="overlay-btn secondary" id="btn-restart-lose">ÚJRA PRÓBÁLKOZÁS</button>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
